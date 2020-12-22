@@ -12,7 +12,7 @@
 void func(int sockfd, FILE *fp)
 {
     char buff[MAX];
-    fp = fopen("1mb.txt", "r");
+    fp = fopen("1mb.txt", "rb");
     socklen_t len;
     if (fp == NULL)
     {
@@ -26,16 +26,16 @@ void func(int sockfd, FILE *fp)
     {
         perror("getsockopt\n");
     }
-    /*
+    
    if (setsockopt(sockfd,IPPROTO_TCP,TCP_CONGESTION,buff,sizeof(buff))!= 0)
    {
        perror("failed to change the congestion control of tcp");
    }
-   */
+   
 
     int n;
     // let's take the packets from the sender
-    for (size_t i = 0; i < 4; i++)
+    for (size_t i = 0; i < 5; i++)
     {
         printf("Sending... %d\n", i);
         while (fgets(buff, MAX, fp) != NULL)
@@ -85,9 +85,9 @@ int main()
 
     // function to receive  the file 4 times.
 
-    printf("I'm in my way to send you the file :)");
+    printf("I'm in my way to send you the file :)\n");
     func(sockfd, fp);
     // close the socket
-    printf("See ya next time peace!");
+    printf("See ya next time peace!\n");
     close(sockfd);
 }

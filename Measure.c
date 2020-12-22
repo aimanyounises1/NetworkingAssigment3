@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/tcp.h>
+#include <sys/time.h>
 #define MAX 1024
 #define PORT 8080
 #define SA struct sockaddr
@@ -15,38 +16,43 @@ void func(int sockfd)
 {
     char buff[MAX];
     int n;
-    // infinite loop for chat
     FILE *fp;
     socklen_t len;
     char *filename = "recv.txt";
     char name[50];
     strcpy(name, "reno");
+    struct timeval t0;
+    gettimeofday(&t0, 0);
+    struct timeval t1;
     len = sizeof(buff);
     if (getsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, &len) != 0)
     {
         perror("getsockopt");
     }
-    /*
-   if (setsockopt(sockfd,IPPROTO_TCP,TCP_CONGESTION,buff,sizeof(buff))!= 0)
-   {
-       perror("failed to change the congestion control of tcp");
-   }
-   */
 
-    fp = fopen(filename, "w");
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, len) != 0)
+    {
+        perror("failed to change the congestion control of tcp");
+    }
+
+    fp = fopen(filename, "wb");
     while (1)
     {
         n = recv(sockfd, buff, MAX, 0);
         //printf("Hello\n");
         if (n <= 0)
         {
-          //  printf("Bla bla bla ...\n");
+            //  printf("Bla bla bla ...\n");
             break;
             return;
         }
         fprintf(fp, "%s", buff);
         bzero(buff, sizeof(buff));
     }
+    gettimeofday(&t1, 0);
+    float totalTime = (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+    printf("The  average of total time in Miliseconds is = %f\n",
+     totalTime/5);// sum of all time that taken to send the 5 files/5
     return;
 }
 
