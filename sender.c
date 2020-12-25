@@ -6,17 +6,33 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <arpa/inet.h>
 #define MAX 1024
 #define PORT 8080
 #define SA struct sockaddr
 void func(int sockfd, FILE *fp)
 {
+    int n;
     char buff[MAX];
     fp = fopen("1mb.txt", "rb");
     socklen_t len;
     if (fp == NULL)
     {
         printf("File not opened");
+    }
+     // let's take the packets from the sender
+    for (size_t i = 0; i < 5; i++)
+    {
+        printf("Sending with cubic... %ld\n", i);
+        while (fgets(buff, MAX, fp) != NULL)
+        {
+            if (send(sockfd, buff, sizeof(buff), 0) == -1)
+            {
+                perror("Unable to send the message!\n");
+                exit(1);
+            }
+            bzero(buff, sizeof(buff));
+        }
     }
 
     char name[50];
@@ -32,12 +48,10 @@ void func(int sockfd, FILE *fp)
        perror("failed to change the congestion control of tcp");
    }
    
-
-    int n;
     // let's take the packets from the sender
     for (size_t i = 0; i < 5; i++)
     {
-        printf("Sending... %d\n", i);
+        printf("Sending with reno... %ld\n", i);
         while (fgets(buff, MAX, fp) != NULL)
         {
             if (send(sockfd, buff, sizeof(buff), 0) == -1)

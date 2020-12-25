@@ -10,7 +10,6 @@
 #define MAX 1024
 #define PORT 8080
 #define SA struct sockaddr
-
 // Function designed to receive the file form sender.
 void func(int sockfd)
 {
@@ -21,24 +20,13 @@ void func(int sockfd)
     char *filename = "recv.txt";
     char name[50];
     strcpy(name, "reno");
-    struct timeval t0;
+    struct timeval t0,t1,t2,t3;
     gettimeofday(&t0, 0);
-    struct timeval t1;
-    len = sizeof(buff);
-    if (getsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, &len) != 0)
-    {
-        perror("getsockopt");
-    }
-
-    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, len) != 0)
-    {
-        perror("failed to change the congestion control of tcp");
-    }
-
     fp = fopen(filename, "wb");
-    while (1)
+     while (1)
     {
         n = recv(sockfd, buff, MAX, 0);
+    //   printf("%ld",n);
         //printf("Hello\n");
         if (n <= 0)
         {
@@ -49,8 +37,40 @@ void func(int sockfd)
         fprintf(fp, "%s", buff);
         bzero(buff, sizeof(buff));
     }
-    gettimeofday(&t1, 0);
-    float totalTime = (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+        gettimeofday(&t1, 0);
+         float totalTime = (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+    printf("The  average of total time in Miliseconds is = %f\n",
+     totalTime/5);// sum of all time that taken to send the 5 files/
+
+    len = sizeof(buff);
+    if (getsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, &len) != 0)
+    {
+        perror("getsockopt");
+    }
+
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, &len) != 0)
+    {
+        perror("failed to change the congestion control of tcp");
+    }
+
+   // fp = fopen(filename, "wb");
+   gettimeofday(&t2,0);
+    while (1)
+    {
+        n = recv(sockfd, buff, MAX, 0);
+    //   printf("%ld",n);
+        //printf("Hello\n");
+        if (n <= 0)
+        {
+            //  printf("Bla bla bla ...\n");
+            break;
+            return;
+        }
+        fprintf(fp, "%s", buff);
+        bzero(buff, sizeof(buff));
+    }
+    gettimeofday(&t3, 0);
+    float totalTime = (t3.tv_sec - t2.tv_sec) * 1000.0f + (t2.tv_usec - t3.tv_usec) / 1000.0f;
     printf("The  average of total time in Miliseconds is = %f\n",
      totalTime/5);// sum of all time that taken to send the 5 files/5
     return;
@@ -87,7 +107,7 @@ int main()
     else
         printf("Socket successfully binded..\n");
 
-    // Now server is ready to listen and verification
+    // Now Measure is ready to listen and verification
     if ((listen(sockfd, 5)) != 0)
     {
         printf("Listen failed...\n");
