@@ -6,33 +6,38 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <arpa/inet.h>
 #define MAX 1024
 #define PORT 8080
 #define SA struct sockaddr
-char name[50];
 void func(int sockfd, FILE *fp)
 {
-    int n;
     char buff[MAX];
     fp = fopen("1mb.txt", "rb");
     socklen_t len;
-    len = strlen(name);
-    if (strcmp(name, "reno") == 0)
-    {
-        if (setsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, name, len != 0))
-        {
-            perror("failed to change the congestion control of tcp");
-        }
-    }
     if (fp == NULL)
     {
         printf("File not opened");
     }
-    // let's take the packets from the sender
-    for ( size_t i = 0; i < 5; i++)
+
+    char name[50];
+    strcpy(buff, "reno");
+    len = sizeof(buff);
+    if (getsockopt(sockfd, IPPROTO_TCP, TCP_CONGESTION, buff, &len) != 0)
     {
-        printf("Sending with = %s... %ld\n", name, i);
+        perror("getsockopt\n");
+    }
+    
+   if (setsockopt(sockfd,IPPROTO_TCP,TCP_CONGESTION,buff,sizeof(buff))!= 0)
+   {
+       perror("failed to change the congestion control of tcp");
+   }
+   
+	printf("Sending with reno \n");
+    int n;
+    // let's take the packets from the sender
+    for (size_t i = 0; i < 5; i++)
+    {
+        printf("Sending... %d\n", i);
         while (fgets(buff, MAX, fp) != NULL)
         {
             if (send(sockfd, buff, sizeof(buff), 0) == -1)
@@ -43,17 +48,13 @@ void func(int sockfd, FILE *fp)
             bzero(buff, sizeof(buff));
         }
     }
-
-// close(sockfd);
+    // close(sockfd);
     return;
 }
+
 // Driver function
-int main(int argc, char *argv[])
+int main()
 {
-    if (argc > 1)
-    {
-        strcpy(name, argv[1]);
-    }
     int sockfd, connfd;
     FILE *fp;
     struct sockaddr_in servaddr, cli;
